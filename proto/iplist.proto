@@ -1,0 +1,23 @@
+syntax="proto3";
+ 
+package proto;
+ 
+option go_package = "illumio.com/iplist";
+ 
+ 
+message NewIplist {
+   string name = 1;
+   string description = 2;
+   bool done = 3;
+}
+ 
+message Iplist {
+   string name = 1;
+   string description = 2;
+   bool done = 3;
+   string id = 4;
+}
+ 
+service IplistService {
+   rpc CreateIplist(NewIplist) returns (Iplist) {}
+}
