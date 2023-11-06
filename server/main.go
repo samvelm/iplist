@@ -19,18 +19,6 @@ type IplistServer struct {
 	pb.UnimplementedIplistServiceServer
 }
 
-// func (s *IplistServer) CreateIplist(ctx context.Context, in *pb.NewIplist) (*pb.Iplist, error) {
-// 	log.Printf("Received: %v", in.GetName())
-// 	iplist := &pb.Iplist{
-// 		Name:        in.GetName(),
-// 		Description: in.GetDescription(),
-// 		Done:        false,
-// 		Id:          uuid.New().String(),
-// 	}
-
-// 	return iplist, nil
-// }
-
 // ResolveUser implementation of the client server gRPC request
 func (s *IplistServer) ResolveUser(ctx context.Context, in *pb.SourceIp) (*pb.UserGroups, error) {
 	log.Printf("Received: %v", in.GetIpAddress())
