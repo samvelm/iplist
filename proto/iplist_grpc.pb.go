@@ -19,14 +19,16 @@ import (
 const _ = grpc.SupportPackageIsVersion7
 
 const (
-	IplistService_CreateIplist_FullMethodName = "/proto.IplistService/CreateIplist"
+	IplistService_ResolveUser_FullMethodName      = "/proto.IplistService/ResolveUser"
+	IplistService_ResolveIpAddress_FullMethodName = "/proto.IplistService/ResolveIpAddress"
 )
 
 // IplistServiceClient is the client API for IplistService service.
 //
 // For semantics around ctx use and closing/ending streaming RPCs, please refer to https://pkg.go.dev/google.golang.org/grpc/?tab=doc#ClientConn.NewStream.
 type IplistServiceClient interface {
-	CreateIplist(ctx context.Context, in *NewIplist, opts ...grpc.CallOption) (*Iplist, error)
+	ResolveUser(ctx context.Context, in *SourceIp, opts ...grpc.CallOption) (*UserGroups, error)
+	ResolveIpAddress(ctx context.Context, opts ...grpc.CallOption) (IplistService_ResolveIpAddressClient, error)
 }
 
 type iplistServiceClient struct {
@@ -37,20 +39,52 @@ func NewIplistServiceClient(cc grpc.ClientConnInterface) IplistServiceClient {
 	return &iplistServiceClient{cc}
 }
 
-func (c *iplistServiceClient) CreateIplist(ctx context.Context, in *NewIplist, opts ...grpc.CallOption) (*Iplist, error) {
-	out := new(Iplist)
-	err := c.cc.Invoke(ctx, IplistService_CreateIplist_FullMethodName, in, out, opts...)
+func (c *iplistServiceClient) ResolveUser(ctx context.Context, in *SourceIp, opts ...grpc.CallOption) (*UserGroups, error) {
+	out := new(UserGroups)
+	err := c.cc.Invoke(ctx, IplistService_ResolveUser_FullMethodName, in, out, opts...)
 	if err != nil {
 		return nil, err
 	}
 	return out, nil
 }
 
+func (c *iplistServiceClient) ResolveIpAddress(ctx context.Context, opts ...grpc.CallOption) (IplistService_ResolveIpAddressClient, error) {
+	stream, err := c.cc.NewStream(ctx, &IplistService_ServiceDesc.Streams[0], IplistService_ResolveIpAddress_FullMethodName, opts...)
+	if err != nil {
+		return nil, err
+	}
+	x := &iplistServiceResolveIpAddressClient{stream}
+	return x, nil
+}
+
+type IplistService_ResolveIpAddressClient interface {
+	Send(*SourceIp) error
+	Recv() (*UserGroups, error)
+	grpc.ClientStream
+}
+
+type iplistServiceResolveIpAddressClient struct {
+	grpc.ClientStream
+}
+
+func (x *iplistServiceResolveIpAddressClient) Send(m *SourceIp) error {
+	return x.ClientStream.SendMsg(m)
+}
+
+func (x *iplistServiceResolveIpAddressClient) Recv() (*UserGroups, error) {
+	m := new(UserGroups)
+	if err := x.ClientStream.RecvMsg(m); err != nil {
+		return nil, err
+	}
+	return m, nil
+}
+
 // IplistServiceServer is the server API for IplistService service.
 // All implementations must embed UnimplementedIplistServiceServer
 // for forward compatibility
 type IplistServiceServer interface {
-	CreateIplist(context.Context, *NewIplist) (*Iplist, error)
+	ResolveUser(context.Context, *SourceIp) (*UserGroups, error)
+	ResolveIpAddress(IplistService_ResolveIpAddressServer) error
 	mustEmbedUnimplementedIplistServiceServer()
 }
 
@@ -58,8 +92,11 @@ type IplistServiceServer interface {
 type UnimplementedIplistServiceServer struct {
 }
 
-func (UnimplementedIplistServiceServer) CreateIplist(context.Context, *NewIplist) (*Iplist, error) {
-	return nil, status.Errorf(codes.Unimplemented, "method CreateIplist not implemented")
+func (UnimplementedIplistServiceServer) ResolveUser(context.Context, *SourceIp) (*UserGroups, error) {
+	return nil, status.Errorf(codes.Unimplemented, "method ResolveUser not implemented")
+}
+func (UnimplementedIplistServiceServer) ResolveIpAddress(IplistService_ResolveIpAddressServer) error {
+	return status.Errorf(codes.Unimplemented, "method ResolveIpAddress not implemented")
 }
 func (UnimplementedIplistServiceServer) mustEmbedUnimplementedIplistServiceServer() {}
 
@@ -74,22 +111,48 @@ func RegisterIplistServiceServer(s grpc.ServiceRegistrar, srv IplistServiceServe
 	s.RegisterService(&IplistService_ServiceDesc, srv)
 }
 
-func _IplistService_CreateIplist_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
-	in := new(NewIplist)
+func _IplistService_ResolveUser_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
+	in := new(SourceIp)
 	if err := dec(in); err != nil {
 		return nil, err
 	}
 	if interceptor == nil {
-		return srv.(IplistServiceServer).CreateIplist(ctx, in)
+		return srv.(IplistServiceServer).ResolveUser(ctx, in)
 	}
 	info := &grpc.UnaryServerInfo{
 		Server:     srv,
-		FullMethod: IplistService_CreateIplist_FullMethodName,
+		FullMethod: IplistService_ResolveUser_FullMethodName,
 	}
 	handler := func(ctx context.Context, req interface{}) (interface{}, error) {
-		return srv.(IplistServiceServer).CreateIplist(ctx, req.(*NewIplist))
+		return srv.(IplistServiceServer).ResolveUser(ctx, req.(*SourceIp))
 	}
 	return interceptor(ctx, in, info, handler)
+}
+
+func _IplistService_ResolveIpAddress_Handler(srv interface{}, stream grpc.ServerStream) error {
+	return srv.(IplistServiceServer).ResolveIpAddress(&iplistServiceResolveIpAddressServer{stream})
+}
+
+type IplistService_ResolveIpAddressServer interface {
+	Send(*UserGroups) error
+	Recv() (*SourceIp, error)
+	grpc.ServerStream
+}
+
+type iplistServiceResolveIpAddressServer struct {
+	grpc.ServerStream
+}
+
+func (x *iplistServiceResolveIpAddressServer) Send(m *UserGroups) error {
+	return x.ServerStream.SendMsg(m)
+}
+
+func (x *iplistServiceResolveIpAddressServer) Recv() (*SourceIp, error) {
+	m := new(SourceIp)
+	if err := x.ServerStream.RecvMsg(m); err != nil {
+		return nil, err
+	}
+	return m, nil
 }
 
 // IplistService_ServiceDesc is the grpc.ServiceDesc for IplistService service.
@@ -100,10 +163,17 @@ var IplistService_ServiceDesc = grpc.ServiceDesc{
 	HandlerType: (*IplistServiceServer)(nil),
 	Methods: []grpc.MethodDesc{
 		{
-			MethodName: "CreateIplist",
-			Handler:    _IplistService_CreateIplist_Handler,
+			MethodName: "ResolveUser",
+			Handler:    _IplistService_ResolveUser_Handler,
 		},
 	},
-	Streams:  []grpc.StreamDesc{},
+	Streams: []grpc.StreamDesc{
+		{
+			StreamName:    "ResolveIpAddress",
+			Handler:       _IplistService_ResolveIpAddress_Handler,
+			ServerStreams: true,
+			ClientStreams: true,
+		},
+	},
 	Metadata: "proto/iplist.proto",
 }
