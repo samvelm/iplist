@@ -2,8 +2,10 @@ package main
 
 import (
 	"log"
+
+	u "illumio.com/iplist/utils"
 )
 
 func main() {
-	log.Print(get_random_ip_address())
+	log.Printf("Random IP address -> %s", u.GetRandomIpAddress())
 }
